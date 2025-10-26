@@ -1,0 +1,95 @@
+{% load widget_tweaks %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Usuarios</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container my-5">
+    <h2 class="mb-4 text-center">Gestión de Usuarios</h2>
+
+    <!-- Mensajes flash -->
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Formulario para agregar nuevo bibliotecario -->
+    <div class="card mb-5 shadow-sm p-4">
+        <h5 class="mb-3">Agregar Nuevo Bibliotecario</h5>
+        <form method="post" class="row g-3">
+            {% csrf_token %}
+            <div class="col-md-4">
+                {{ form.username.label_tag }}
+                {{ form.username|add_class:"form-control" }}
+            </div>
+            <div class="col-md-4">
+                {{ form.email.label_tag }}
+                {{ form.email|add_class:"form-control" }}
+            </div>
+            <div class="col-md-4">
+                {{ form.password1.label_tag }}
+                {{ form.password1|add_class:"form-control" }}
+                {% if form.password1.help_text %}<small class="text-muted">{{ form.password1.help_text }}</small>{% endif %}
+            </div>
+            <div class="col-md-4">
+                {{ form.password2.label_tag }}
+                {{ form.password2|add_class:"form-control" }}
+            </div>
+            <div class="col-12 mt-3">
+                <button type="submit" class="btn btn-primary">Agregar Bibliotecario</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de usuarios existentes -->
+    <div class="card shadow-sm p-4">
+        <h5 class="mb-3">Usuarios Registrados</h5>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Correo Electrónico</th>
+                        <th>Rol</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr>
+                        <td>{{ usuario.username }}</td>
+                        <td>{{ usuario.email }}</td>
+                        <td>{{ usuario.get_rol_display }}</td>
+                        <td class="text-center">
+                            <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-sm btn-warning me-2">Editar</a>
+                            <a href="{% url 'eliminar_usuario' usuario.id %}" class="btn btn-sm btn-danger"
+                               onclick="return confirm('¿Estás seguro de eliminar este usuario?');">Eliminar</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No hay usuarios registrados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS (opcional para componentes interactivos) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

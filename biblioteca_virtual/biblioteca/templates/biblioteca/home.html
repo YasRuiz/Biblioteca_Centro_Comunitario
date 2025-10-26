@@ -1,0 +1,81 @@
+{% extends 'biblioteca/base.html' %}
+
+{% block title %}Inicio - Biblioteca Virtual{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column justify-content-center align-items-center" style="min-height: 70vh; gap: 2.5rem;">
+
+    <h1 class="display-4 fw-bold text-center">📚 Biblioteca Virtual</h1>
+    <p class="fs-5 text-center text-muted">Seleccione el tipo de usuario para iniciar sesión</p>
+
+    <div class="row w-100 g-4 justify-content-center">
+
+        <!-- Alumno -->
+        <div class="col-12 col-md-3">
+            <a href="{% url 'login_rol' 'alumno' %}" class="text-decoration-none">
+                <div class="d-flex justify-content-center align-items-center user-card bg-primary text-white shadow-lg card-hover p-5 rounded-4">
+                    <div class="text-center">
+                        <div class="fs-1 mb-3">👩‍🎓</div>
+                        <h2 class="mb-0">Alumno</h2>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Profesor -->
+        <div class="col-12 col-md-3">
+            <a href="{% url 'login_rol' 'profesor' %}" class="text-decoration-none">
+                <div class="d-flex justify-content-center align-items-center user-card bg-info text-white shadow-lg card-hover p-5 rounded-4">
+                    <div class="text-center">
+                        <div class="fs-1 mb-3">🧑‍🏫</div>
+                        <h2 class="mb-0">Profesor</h2>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Bibliotecario -->
+        <div class="col-12 col-md-3">
+            <a href="{% url 'login_rol' 'bibliotecario' %}" class="text-decoration-none">
+                <div class="d-flex justify-content-center align-items-center user-card bg-success text-white shadow-lg card-hover p-5 rounded-4">
+                    <div class="text-center">
+                        <div class="fs-1 mb-3">🧑‍💼</div>
+                        <h2 class="mb-0">Bibliotecario</h2>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Administrador -->
+        <div class="col-12 col-md-3">
+            <a href="{% url 'login_rol' 'administrador' %}" class="text-decoration-none">
+                <div class="d-flex justify-content-center align-items-center user-card bg-warning text-dark shadow-lg card-hover p-5 rounded-4">
+                    <div class="text-center">
+                        <div class="fs-1 mb-3">🛠️</div>
+                        <h2 class="mb-0">Administrador</h2>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* Animación de las cards al hover */
+    .card-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+        cursor: pointer;
+    }
+
+    .card-hover:hover {
+        transform: translateY(-10px) scale(1.03);
+        box-shadow: 0 20px 35px rgba(0, 0, 0, 0.25);
+        filter: brightness(1.05);
+    }
+
+    .user-card {
+        width: 100%;
+    }
+</style>
+{% endblock %}

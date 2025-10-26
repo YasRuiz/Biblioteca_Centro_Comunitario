@@ -1,0 +1,174 @@
+{% extends 'biblioteca/base.html' %}
+
+{% block title %}Panel Administrador - Biblioteca Virtual{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row flex-nowrap">
+        <!-- Sidebar -->
+        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse shadow-sm position-sticky">
+            <div class="position-sticky pt-3">
+                <h5 class="px-3 mb-3 text-muted">Menú</h5>
+                <ul class="nav flex-column">
+                    {% for section, icon, label in menu_items %}
+                        <li class="nav-item mb-2">
+                            <a class="nav-link d-flex align-items-center {% if active_section == section %}active bg-primary text-white rounded{% else %}text-dark{% endif %}" 
+                               href="{% if section == 'dashboard' %}{% url 'admin_dashboard' %}{% else %}{% url 'admin_dashboard_section' section=section %}{% endif %}">
+                                <i class="bi {{ icon }} me-2"></i> {{ label }}
+                            </a>
+                        </li>
+                    {% endfor %}
+
+                    <!-- Botón Cerrar Sesión -->
+                    <li class="nav-item mt-3">
+                        <form method="post" action="{% url 'logout_usuario' %}">
+                            {% csrf_token %}
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Contenido principal -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 content-wrapper">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+                <h1 class="h2">Panel de Administración</h1>
+            </div>
+
+            {% block admin_content %}
+            <div class="uniform-container">
+                {% if active_section == 'dashboard' %}
+                    <div class="row mb-4 g-3">
+                        {% for title, count, bg in stats_items %}
+                            <div class="col-md-3 col-sm-6">
+                                <div class="card text-white bg-{{ bg }} shadow-sm h-100 border-0">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title fw-bold">{{ title }}</h5>
+                                        <p class="card-text fs-3">{{ count }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="alert alert-info shadow-sm">
+                        Seleccione una opción del menú lateral para gestionar usuarios, libros, préstamos o reservas.
+                    </div>
+                {% elif active_section == 'usuarios' %}
+                    <!-- Formulario para agregar bibliotecario -->
+                    <div class="mb-4">
+                        <h4>Agregar Bibliotecario</h4>
+                        <form method="post" class="row g-3">
+                            {% csrf_token %}
+                            {{ form.as_p }}
+                            <button type="submit" name="crear_bibliotecario" class="btn btn-success">Agregar</button>
+                        </form>
+                    </div>
+
+                    <!-- Tabla de usuarios -->
+                    <div class="table-responsive">
+                        <h4 class="mb-3">Listado de Usuarios</h4>
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Usuario</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for usuario in usuarios %}
+                                    <tr>
+                                        <td>{{ usuario.id }}</td>
+                                        <td>{{ usuario.username }}</td>
+                                        <td>{{ usuario.email }}</td>
+                                        <td>{{ usuario.rol|title }}</td>
+                                        <td>
+                                            <form method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="user_id" value="{{ usuario.id }}">
+                                                <button type="submit" name="editar_usuario" class="btn btn-sm btn-primary">Editar</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                {% elif active_section == 'libros' %}
+                    {% include 'biblioteca/admin_libros.html' %}
+                {% elif active_section == 'prestamos' %}
+                    {% include 'biblioteca/admin_prestamos.html' %}
+                {% elif active_section == 'reservas' %}
+                    {% include 'biblioteca/admin_reservas.html' %}
+                {% else %}
+                    <p>Sección desconocida.</p>
+                {% endif %}
+            </div>
+            {% endblock %}
+        </main>
+    </div>
+</div>
+
+<style>
+    .sidebar {
+        height: 100vh;
+        overflow-y: auto;
+        transition: all 0.3s;
+    }
+    .sidebar .nav-link {
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+    }
+    .sidebar .nav-link:hover {
+        background-color: #0d6efd;
+        color: #fff !important;
+        border-radius: 0.5rem;
+    }
+    .sidebar .nav-link.active {
+        background-color: #0d6efd;
+        color: #fff !important;
+        border-radius: 0.5rem;
+        font-weight: 600;
+    }
+
+    .content-wrapper {
+        min-height: 80vh;
+        padding-bottom: 2rem;
+    }
+    .uniform-container {
+        width: 100%;
+        min-height: 60vh;
+    }
+    .card {
+        border-radius: 0.75rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    .section-container {
+        padding: 1.5rem;
+        background-color: #fff;
+        border-radius: 0.75rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        min-height: 60vh;
+        transition: all 0.3s ease-in-out;
+    }
+    .section-container .table-responsive {
+        padding: 1rem;
+        background-color: #fff;
+        border-radius: 0.75rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .alert {
+        border-radius: 0.5rem;
+    }
+    h1, h2, h5 {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,219 @@
+{% extends 'biblioteca/base.html' %}
+
+{% block title %}Dashboard Bibliotecario{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">📚 Panel del Bibliotecario</h2>
+
+    <!-- ===================== LIBROS ===================== -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Libros disponibles</h5>
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for libro in libros_disponibles %}
+                    <li class="list-group-item">{{ libro.titulo }} - {{ libro.autor }}</li>
+                    {% empty %}
+                    <li class="list-group-item">No hay libros disponibles</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Libros prestados</h5>
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for libro in libros_prestados %}
+                    <li class="list-group-item">{{ libro.titulo }} - {{ libro.autor }}</li>
+                    {% empty %}
+                    <li class="list-group-item">No hay libros prestados</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== MOROSOS ===================== -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">Usuarios morosos</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Libro</th>
+                        <th>Días de mora</th>
+                        <th>Multa</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prestamo in morosos %}
+                    <tr>
+                        <td>{{ prestamo.usuario.username }}</td>
+                        <td>{{ prestamo.libro.titulo }}</td>
+                        <td>{{ prestamo.dias_mora }}</td>
+                        <td>{{ prestamo.monto_multa }} pesos</td>
+                        <td>
+                            <a href="{% url 'pagar_multa' prestamo.id %}" class="btn btn-sm btn-outline-success">
+                                Generar código de pago
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center">No hay morosos</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ===================== USUARIOS (ALUMNOS Y PROFESORES) ===================== -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Gestión de usuarios (Alumnos y Profesores)</h5>
+            <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#modalAgregarUsuario">
+                ➕ Agregar usuario
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0">
+                <thead class="table-secondary">
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr>
+                        <td>{{ usuario.username }}</td>
+                        <td>{{ usuario.email }}</td>
+                        <td class="text-capitalize">{{ usuario.rol }}</td>
+                        <td>
+                            <!-- Editar -->
+                            <button class="btn btn-sm btn-outline-warning"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalEditarUsuario{{ usuario.id }}">
+                                ✏️ Editar
+                            </button>
+
+                            <!-- Eliminar -->
+                            <a href="{% url 'eliminar_usuario' usuario.id %}" 
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('¿Seguro que deseas eliminar a {{ usuario.username }}?')">
+                               🗑️ Eliminar
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Modal editar usuario -->
+                    <div class="modal fade" id="modalEditarUsuario{{ usuario.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form method="post" action="{% url 'dashboard_bibliotecario' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ usuario.id }}">
+                                    <input type="hidden" name="editar_usuario" value="1">
+                                    <div class="modal-header bg-warning text-dark">
+                                        <h5 class="modal-title">Editar usuario: {{ usuario.username }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Nombre de usuario</label>
+                                            <input type="text" name="username" value="{{ usuario.username }}" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Correo electrónico</label>
+                                            <input type="email" name="email" value="{{ usuario.email }}" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Rol</label>
+                                            <select name="rol" class="form-select">
+                                                <option value="alumno" {% if usuario.rol == 'alumno' %}selected{% endif %}>Alumno</option>
+                                                <option value="profesor" {% if usuario.rol == 'profesor' %}selected{% endif %}>Profesor</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Nueva contraseña (opcional)</label>
+                                            <input type="password" name="password1" class="form-control" placeholder="Ingrese nueva contraseña">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Confirmar contraseña</label>
+                                            <input type="password" name="password2" class="form-control" placeholder="Repita nueva contraseña">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-warning">Guardar cambios</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center">No hay usuarios registrados</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal agregar usuario -->
+<div class="modal fade" id="modalAgregarUsuario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'dashboard_bibliotecario' %}">
+                {% csrf_token %}
+                <input type="hidden" name="crear_usuario" value="1">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Agregar nuevo usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre de usuario</label>
+                        <input type="text" name="username" class="form-control" placeholder="Ingrese nombre de usuario" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Correo electrónico</label>
+                        <input type="email" name="email" class="form-control" placeholder="Ingrese correo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Rol</label>
+                        <select name="rol" class="form-select" required>
+                            <option value="alumno">Alumno</option>
+                            <option value="profesor">Profesor</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <input type="password" name="password1" class="form-control" placeholder="Ingrese contraseña" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirmar contraseña</label>
+                        <input type="password" name="password2" class="form-control" placeholder="Repita contraseña" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Guardar usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'biblioteca/base.html' %}
+
+{% block title %}Dashboard Profesor{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="mb-4 text-center">📚 Portal del Profesor {{ request.user.username }}</h2>
+
+    <!-- Libros disponibles -->
+    <h4 class="mb-3">Libros disponibles</h4>
+    <div class="row mb-5">
+        {% for libro in libros_disponibles %}
+        <div class="col-12 col-md-4 mb-4">
+            <div class="card shadow-sm h-100 card-hover">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="card-title">{{ libro.titulo }}</h5>
+                        <p class="card-text">{{ libro.autor }}</p>
+                    </div>
+                    <form action="{% url 'reservar_libro' libro.id %}" method="post">
+                        {% csrf_token %}
+                        <button class="btn btn-primary w-100">Reservar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted">No hay libros disponibles.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Mis préstamos -->
+    <h4 class="mb-3">Mis préstamos</h4>
+    <div class="row">
+        {% for prestamo in prestamos_usuario %}
+        <div class="col-12 col-md-6 mb-3">
+            <div class="card shadow-sm card-hover h-100">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="card-title">{{ prestamo.libro.titulo }}</h5>
+                        <p class="card-text mb-1"><strong>Fecha préstamo:</strong> {{ prestamo.fecha_prestamo }}</p>
+                        <p class="card-text mb-2"><strong>Fecha devolución:</strong> {{ prestamo.fecha_devolucion }}</p>
+                        {% if prestamo.dias_mora > 0 %}
+                            <p class="text-danger"><strong>Multa:</strong> {{ prestamo.monto_multa }} pesos</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {% if not prestamo.renovado %}
+                        <a href="{% url 'renovar_prestamo' prestamo.id %}" class="btn btn-warning w-100">Renovar</a>
+                        {% else %}
+                        <span class="badge bg-success w-100 text-center py-2">Renovado</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted">No tienes préstamos.</p>
+        {% endfor %}
+    </div>
+
+</div>
+
+<style>
+    .card-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+        cursor: pointer;
+    }
+    .card-hover:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        filter: brightness(1.03);
+    }
+</style>
+{% endblock %}
